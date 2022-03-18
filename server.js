@@ -16,7 +16,21 @@ app.set('views', path.join(__dirname, 'views'));
 
 const options = { format: 'Letter' };
 
-app.post('/b', (req, res) => {
+app.get('/', function (req, res) {
+  res.send(`<pre><code> 
+    {
+        "template2": "htmlContent",
+        "origin": "Antalya",
+        "destination": "Balıkesir"
+    }
+    </code></pre>
+<label>htmlContent:</label>
+    <textarea rows=5 cols=100 ><style>div{border:1px solid black; color:black; width:250px; margin: auto;padding:1em;}</style><div>{{=it.origin}}  --> {{=it.destination}}</div><div>Dosya hazırlama tarihi: {{=new Date().toString().substr(0,21)}}</div></textarea>
+    <p>use /api url and send this request via post method </p>
+    `)
+})
+
+app.post('/api', (req, res) => {
   let temp = req.body.template2,
   name = "temp.html",
   
