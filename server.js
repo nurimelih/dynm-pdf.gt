@@ -46,9 +46,7 @@ app.post('/api', (req, res) => {
     req.body.data.forEach((i) => { tempData[i.Key] = i.Value})
 
     var templateFn = doT.template(template);
-    var resultText = "process.env"
-
-    console.log(process.env) // remove this after you've confirmed it working
+    var resultText = templateFn({template:req.body.template2,...tempData, reqData: req.rawHeaders, res: res.body});
 
     pdf.create(resultText).toFile(`./${pdfName}.pdf`, 
             (err, res2) => {
