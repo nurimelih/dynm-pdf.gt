@@ -1,10 +1,12 @@
 const express = require('express')
 , app = express()
 , doT = require('dot')
-, linq = require('linq')
+
 , engines = require('consolidate')
 , path = require ('path')
 , pdf = require('html-pdf')
+
+require('dotenv').config()
 
 app.engine('html', engines.ejs);
 app.set('view engine', 'html');
@@ -44,9 +46,9 @@ app.post('/api', (req, res) => {
     req.body.data.forEach((i) => { tempData[i.Key] = i.Value})
 
     var templateFn = doT.template(template);
-    var resultText = templateFn({template:req.body.template2,...tempData, reqData: req.rawHeaders, res: res.body});
+    var resultText = "process.env"
 
-    console.log(tempData)
+    console.log(process.env) // remove this after you've confirmed it working
 
     pdf.create(resultText).toFile(`./${pdfName}.pdf`, 
             (err, res2) => {
@@ -62,4 +64,4 @@ app.post('/api', (req, res) => {
 
 });
 
-app.listen(process.env.PORT || 3000)
+app.listen(process.env.PORT || 5000)
