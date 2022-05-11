@@ -1,17 +1,16 @@
 const express = require('express')
 , app = express()
 , doT = require('dot')
+, linq = require('linq')
 , engines = require('consolidate')
-, fs = require('fs')
 , path = require ('path')
-, pdf = require('html-pdf');
+, pdf = require('html-pdf')
 
-app.engine('html', engines.dot);
+app.engine('html', engines.ejs);
 app.set('view engine', 'html');
-app.use(express.json());
+app.use(express.json({limit: '50mb'}));
 
-// Set 'views' directory for any views 
-// being rendered res.render()
+
 app.set('views', path.join(__dirname, 'views'));
 
 const options = { format: 'Letter' };
@@ -28,31 +27,39 @@ app.get('/', function (req, res) {
     <textarea rows=5 cols=100 ><style>div{border:1px solid black; color:black; width:250px; margin: auto;padding:1em;}</style><div>{{=it.origin}}  --> {{=it.destination}}</div><div>Dosya hazırlama tarihi: {{=new Date().toString().substr(0,21)}}</div></textarea>
     <p>use /api url and send this request via post method </p>
     `)
-})
+}) 
 
 app.post('/api', (req, res) => {
-  let temp = req.body.template2,
+  let template = req.body.template2,
   name = "temp.html",
-  
   pdfName = "pdf-temp"
-  id = "temp.html";
+  id = "temp.html",
+  p = path.join(__dirname, '/', pdfName + ".pdf");
 
 
-fs.writeFile("views/"+ name, temp, () => {
-    res.render(id, {...req.body}, 
-        (err, html) => { 
+    let tempData = {};
+    let keys = Object.keys(req.body.data);
+    //keys.forEach(i => { tempData[i] = req.body.parameters[i]})
 
-if(!html)
-console.log("html is ", html)
-if(err)
-console.log("html has ", err) 
+    req.body.data.forEach((i) => { tempData[i.Key] = i.Value})
 
-            return pdf.create(html || "string", options).toFile(`./${pdfName}.pdf`, 
+    var templateFn = doT.template(template);
+    var resultText = templateFn({template:req.body.template2,...tempData, reqData: req.rawHeaders, res: res.body});
+
+    console.log(tempData)
+
+    pdf.create(resultText).toFile(`./${pdfName}.pdf`, 
             (err, res2) => {
-                res.render("result", {filePath: res2.filename})
+                if(err){
+                    res.send(resultText + "<div class='color:red'>"+_path+"</div>") 
+                }
+                else{
+                    let result = doT.template('<div>Dosyanız Hazırlandı</div><a href="{{=it.filePath}}">{{=it.filePath}}</a>')({filePath: res2.filename});
+                    res.send(result)
+                }
             }
-        )})
-    })
+        )
+
 });
 
 app.listen(5000)
